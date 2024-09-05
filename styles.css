@@ -20,10 +20,10 @@ body::before {
     width: 100%;
     height: 100%;
     background-image: url('C:/Users/riho/Downloads/pildike.png'); /* Path to the image */
-    background-size: 30%; /* Scale down the image to 10% of its original size */
+    background-size: 30%; /* Scale down the image to 30% of its original size */
     background-repeat: no-repeat;
     background-position: center;
-    opacity: 0.5; /* 30% transparency */
+    opacity: 0.5; /* 50% transparency */
     transform: translate(-50%, -50%); /* Center the image */
     z-index: -1; /* Place behind the content */
 }
@@ -31,19 +31,23 @@ body::before {
 /* Style for the card buttons */
 #cardsContainer button {
     margin: 10px;
-    padding: 20px;
-    background-color: #4CAF50;
+    padding: 10px; /* Adjust padding to fit longer text */
+    background-color: #007BFF; /* Default blue color */
     color: white;
     border: none;
     border-radius: 10px;
     cursor: pointer;
     font-size: 16px;
-    width: 200px; /* Increased width to fit card text */
-    height: 80px; /* Increased height to fit card text */
+    width: auto; /* Allow width to adjust based on text */
+    min-width: 200px; /* Ensure minimum width to maintain button size */
+    height: auto; /* Allow height to adjust based on text */
+    max-width: 90%; /* Limit width to avoid overflow on smaller screens */
     text-align: center;
     overflow-wrap: break-word; /* Ensures text wraps within the button */
+    box-sizing: border-box; /* Include padding and border in button's total width and height */
 }
 
+/* Adjust the styling of the disabled button */
 #cardsContainer button:disabled {
     background-color: #888; /* Disabled card style */
     cursor: not-allowed;
