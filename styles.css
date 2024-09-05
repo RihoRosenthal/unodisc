@@ -19,7 +19,7 @@ body::before {
     left: 50%;
     width: 100%;
     height: 100%;
-    background-image: url('C:/Users/riho/Downloads/pildike.png'); /* Path to the image */
+    background-image: url('pildike.png'); /* Path to the image */
     background-size: 30%; /* Scale down the image to 30% of its original size */
     background-repeat: no-repeat;
     background-position: center;
