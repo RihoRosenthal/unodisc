@@ -1,55 +1,94 @@
 /* Basic styles for the body, including a scaled background image with transparency */
 body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    margin: 0; /* Remove default margin for better positioning */
-    padding: 0; /* Remove default padding */
-    position: relative;
-    overflow: hidden;
-    background-color: #f0f0f0; /* Fallback background color */
+    display: flex; /* Use Flexbox layout */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
     height: 100vh; /* Full viewport height */
-    width: 100vw; /* Full viewport width */
+    margin: 0; /* Remove any margin */
+    padding: 0; /* Remove any padding */
+    position: relative;
+    overflow: auto; /* Allow scrolling */
+    background-color: #000; /* Set background color to black */
 }
 
 /* Background image with 30% opacity */
 body::before {
     content: '';
-    position: absolute;
+    position: fixed; /* Fixed position for background */
     top: 50%;
     left: 50%;
     width: 100%;
     height: 100%;
-    background-image: url('pildike.png'); /* Path to the image */
-    background-size: 30%; /* Scale down the image to 30% of its original size */
+    background-image: url('C:/Users/riho/Downloads/pildike.png'); /* Path to the image */
+    background-size: 30%;
     background-repeat: no-repeat;
     background-position: center;
-    opacity: 0.5; /* 50% transparency */
-    transform: translate(-50%, -50%); /* Center the image */
-    z-index: -1; /* Place behind the content */
+    opacity: 0.5;
+    transform: translate(-50%, -50%);
+    z-index: -1;
 }
 
-/* Style for the card buttons */
-#cardsContainer button {
+/* Style for the auth forms (registration and login) */
+.authForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+}
+
+.authForm input {
+    margin: 5px;
+    padding: 10px;
+    width: 80%;
+    max-width: 300px;
+}
+
+/* Button styles */
+button {
+    padding: 10px 20px;
     margin: 10px;
-    padding: 10px; /* Adjust padding to fit longer text */
-    background-color: #007BFF; /* Default blue color */
-    color: white;
+    font-size: 18px;
     border: none;
     border-radius: 10px;
     cursor: pointer;
+}
+
+/* Style for login text */
+.login-text {
+    color: #fff; /* White text color */
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* Error message styling */
+.error-message {
+    color: #fff; /* White text color */
     font-size: 16px;
-    width: auto; /* Allow width to adjust based on text */
-    min-width: 200px; /* Ensure minimum width to maintain button size */
-    height: auto; /* Allow height to adjust based on text */
-    max-width: 90%; /* Limit width to avoid overflow on smaller screens */
+    margin: 10px 0;
+}
+
+/* Style for card buttons */
+.card-item {
+    background-color: #007BFF; /* Default blue color */
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-block;
     text-align: center;
-    overflow-wrap: break-word; /* Ensures text wraps within the button */
-    box-sizing: border-box; /* Include padding and border in button's total width and height */
+}
+
+/* Style for greyed-out or used cards */
+.card-item.used {
+    background-color: #888; /* Grey color */
+    cursor: not-allowed;
 }
 
 /* Adjust the styling of the disabled button */
 #cardsContainer button:disabled {
-    background-color: #888; /* Disabled card style */
+    background-color: #888;
     cursor: not-allowed;
 }
 
@@ -58,6 +97,8 @@ body::before {
     padding: 10px 20px;
     margin: 10px;
     font-size: 18px;
+    width: 90%;
+    max-width: 200px;
 }
 
 /* Style for card text preview */
@@ -65,29 +106,83 @@ body::before {
     margin: 20px;
     padding: 15px;
     font-size: 18px;
-    color: #333;
-    background-color: #f9f9f9;
+    color: #fff; /* Change text color to white for better contrast */
+    background-color: #333; /* Dark background for text preview */
     border: 2px solid #ccc;
     border-radius: 8px;
     display: inline-block;
+    max-width: 90%;
+    word-wrap: break-word;
 }
 
 /* Style for the custom confirmation dialog */
 .confirmation-dialog {
-    background-color: white;
-    border: 2px solid #333;
+    background-color: #222; /* Dark background for dialog */
+    border: 2px solid #fff; /* White border for contrast */
     padding: 20px;
     display: inline-block;
     margin-top: 20px;
+    max-width: 90%;
+    word-wrap: break-word;
 }
 
 .confirmation-dialog button {
     margin: 5px;
     padding: 10px 20px;
     font-size: 16px;
+    width: 90%;
+    max-width: 200px;
 }
 
-/* Hide any unwanted checkboxes */
-input[type="checkbox"] {
-    display: none; /* Hides checkboxes */
+/* Card management screen */
+#addCardsContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+}
+
+#addCardsContainer input {
+    margin: 5px;
+    padding: 10px;
+    width: 80%;
+    max-width: 300px;
+}
+
+#cardList {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* Style for the welcome message */
+#welcomeMessage {
+    color: white;
+    font-size: 24px;
+    margin: 20px;
+}
+
+/* Hide any unwanted input elements */
+input[type="checkbox"],
+input[type="radio"],
+button[aria-hidden="true"],
+.unwanted-element, /* Any elements with specific classes */
+div:not(#gameArea):empty { /* Hide empty divs that are not #gameArea */
+    display: none !important;
+}
+
+/* Responsive styles for smaller screens */
+@media (max-width: 600px) {
+    button {
+        font-size: 14px;
+    }
+    
+    .card-text, .confirmation-dialog {
+        font-size: 16px;
+    }
+
+    #cardsContainer button, #startButton, #endGameButton, .confirmation-dialog button {
+        font-size: 14px;
+    }
 }

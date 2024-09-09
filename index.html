@@ -3,32 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css"> <!-- Link to CSS file -->
-    <title>Uno Disc Golf Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <title>Uno Disc Golf - Login/Register</title>
 </head>
 <body>
-    <!-- Button to start the game -->
-    <button id="startButton">Alusta Uno disci</button>
-
-    <!-- Game area that becomes visible when the game starts -->
-    <div id="gameArea" style="display:none;">
-        <!-- Container for cards -->
-        <div id="cardsContainer"></div>
-        <!-- Card text preview -->
-        <div id="cardTextPreview" class="card-text"></div>
-
-        <!-- Custom confirmation dialog -->
-        <div id="confirmationDialog" class="confirmation-dialog" style="display:none;">
-            <p>Do you want to use this card?</p>
-            <button id="yesButton">Yes</button>
-            <button id="noButton">No</button>
+    <div id="authScreen">
+        <!-- Authentication Form -->
+        <div class="authForm">
+            <h1 class="login-text">Login</h1>
+            <div id="loginMessage" class="error-message"></div>
+            <form id="loginForm">
+                <input type="text" id="loginUsername" placeholder="Username" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            
+            <h1 class="login-text">Register</h1>
+            <div id="regMessage" class="error-message"></div>
+            <form id="registrationForm">
+                <input type="text" id="regUsername" placeholder="Username" required>
+                <input type="password" id="regPassword" placeholder="Password" required>
+                <input type="password" id="regVerifyPassword" placeholder="Verify Password" required>
+                <button type="submit">Register</button>
+            </form>
         </div>
-
-        <!-- Button to end the game -->
-        <button id="endGameButton">Lõpeta mäng</button>
     </div>
-
-    <!-- Link to JavaScript file -->
     <script src="script.js"></script>
 </body>
 </html>
