@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
     <title>Uno Disc Golf - Login/Register</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth.js"></script>
 </head>
 <body>
     <div id="authScreen">
@@ -13,7 +16,7 @@
             <h1 class="login-text">Login</h1>
             <div id="loginMessage" class="error-message"></div>
             <form id="loginForm">
-                <input type="text" id="loginUsername" placeholder="Username" required>
+                <input type="email" id="loginUsername" placeholder="Email" required>
                 <input type="password" id="loginPassword" placeholder="Password" required>
                 <button type="submit">Login</button>
             </form>
@@ -21,7 +24,7 @@
             <h1 class="login-text">Register</h1>
             <div id="regMessage" class="error-message"></div>
             <form id="registrationForm">
-                <input type="text" id="regUsername" placeholder="Username" required>
+                <input type="email" id="regUsername" placeholder="Email" required>
                 <input type="password" id="regPassword" placeholder="Password" required>
                 <input type="password" id="regVerifyPassword" placeholder="Verify Password" required>
                 <button type="submit">Register</button>
