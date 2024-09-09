@@ -5,53 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
     <title>Uno Disc Golf - Login/Register</title>
-    <!-- Include Firebase SDKs -->
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-          apiKey: "AIzaSyAb5_fcWOzMtrGqIIjlZ7vbEowtyvVAxZE",
-          authDomain: "oob-uno.firebaseapp.com",
-          projectId: "oob-uno",
-          storageBucket: "oob-uno.appspot.com",
-          messagingSenderId: "988582411605",
-          appId: "1:988582411605:web:6a2ae0c8128353e3bd03dc",
-          measurementId: "G-4F533V9M69"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        // Attach Firebase auth object to the global window object so script.js can access it
-        window.auth = auth;
-    </script>
 </head>
 <body>
     <div id="authScreen">
-        <!-- Authentication Form -->
         <div class="authForm">
             <h1 class="login-text">Login</h1>
             <div id="loginMessage" class="error-message"></div>
             <form id="loginForm">
-                <input type="text" id="loginUsername" placeholder="Email" required>
+                <input type="email" id="loginEmail" placeholder="Email" required>
                 <input type="password" id="loginPassword" placeholder="Password" required>
                 <button type="submit">Login</button>
             </form>
-            
+
             <h1 class="login-text">Register</h1>
             <div id="regMessage" class="error-message"></div>
             <form id="registrationForm">
-                <input type="text" id="regUsername" placeholder="Email" required>
+                <input type="email" id="regEmail" placeholder="Email" required>
                 <input type="password" id="regPassword" placeholder="Password" required>
-                <input type="password" id="regVerifyPassword" placeholder="Verify Password" required>
+                <input type="password" id="regVerifyPassword" placeholder="Confirm Password" required>
                 <button type="submit">Register</button>
             </form>
         </div>
     </div>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
     <script src="script.js" type="module"></script>
 </body>
 </html>

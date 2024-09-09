@@ -1,9 +1,27 @@
-// Firebase authentication instance from the window object
-const auth = window.auth;
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc } from "firebase/firestore";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyAb5_fcWOzMtrGqIIjlZ7vbEowtyvVAxZE",
+    authDomain: "oob-uno.firebaseapp.com",
+    projectId: "oob-uno",
+    storageBucket: "oob-uno.appspot.com",
+    messagingSenderId: "988582411605",
+    appId: "1:988582411605:web:6a2ae0c8128353e3bd03dc",
+    measurementId: "G-4F533V9M69"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 // Registration function
-function register() {
-    const email = document.getElementById('regUsername').value;
+async function register() {
+    const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
     const verifyPassword = document.getElementById('regVerifyPassword').value;
     const message = document.getElementById('regMessage');
@@ -14,42 +32,36 @@ function register() {
         return;
     }
 
-    // Create a new user using Firebase
-    createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            // Registration successful
-            message.textContent = 'Registration successful!';
-            message.style.color = 'green';
-        })
-        .catch((error) => {
-            // Display error message
-            message.textContent = `Error: ${error.message}`;
-            message.style.color = 'red';
-        });
+    try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        const userRef = doc(db, 'users', email);
+        await setDoc(userRef, { cards: [] });
+        message.textContent = 'Registration successful!';
+        message.style.color = 'green';
+    } catch (error) {
+        message.textContent = error.message;
+        message.style.color = 'red';
+    }
 }
 
 // Login function
-function login() {
-    const email = document.getElementById('loginUsername').value;
+async function login() {
+    const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     const message = document.getElementById('loginMessage');
 
-    // Sign in user with Firebase
-    signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            // Login successful
-            localStorage.setItem('currentUser', email);
-            window.location.href = 'main.html'; // Redirect to main page
-        })
-        .catch((error) => {
-            // Display error message
-            message.textContent = `Error: ${error.message}`;
-            message.style.color = 'red';
-        });
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        localStorage.setItem('currentUser', email);
+        window.location.href = 'main.html'; // Redirect to main page
+    } catch (error) {
+        message.textContent = 'Invalid email or password!';
+        message.style.color = 'red';
+    }
 }
 
 // Display welcome message on main screen
-function displayWelcomeMessage() {
+async function displayWelcomeMessage() {
     const username = localStorage.getItem('currentUser');
     if (!username) {
         window.location.href = 'index.html';
@@ -60,7 +72,7 @@ function displayWelcomeMessage() {
 }
 
 // Add card function
-function addCard() {
+async function addCard() {
     const cardText = document.getElementById('newCardText').value;
     if (!cardText) return;
 
@@ -70,16 +82,16 @@ function addCard() {
         return;
     }
 
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    users[username] = users[username] || { cards: [] };
-    users[username].cards.push({ text: cardText, used: false });
-    localStorage.setItem('users', JSON.stringify(users));
+    const userRef = doc(db, 'users', username);
+    await updateDoc(userRef, {
+        cards: firebase.firestore.FieldValue.arrayUnion({ text: cardText, used: false })
+    });
 
     displayCards();
 }
 
 // Display cards with delete option
-function displayCards() {
+async function displayCards() {
     const cardList = document.getElementById('cardList');
     const username = localStorage.getItem('currentUser');
     if (!username) {
@@ -87,8 +99,9 @@ function displayCards() {
         return;
     }
 
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    const userCards = users[username]?.cards || [];
+    const userRef = doc(db, 'users', username);
+    const userDoc = await getDoc(userRef);
+    const userCards = userDoc.data()?.cards || [];
 
     cardList.innerHTML = '';
     userCards.forEach((card, index) => {
@@ -110,107 +123,87 @@ function displayCards() {
 }
 
 // Delete card function
-function deleteCard(index) {
+async function deleteCard(index) {
     const username = localStorage.getItem('currentUser');
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    if (users[username]) {
-        users[username].cards.splice(index, 1);
-        localStorage.setItem('users', JSON.stringify(users));
-        displayCards();
-    }
+    const userRef = doc(db, 'users', username);
+    const userDoc = await getDoc(userRef);
+    const userCards = userDoc.data()?.cards || [];
+    
+    userCards.splice(index, 1);
+    await updateDoc(userRef, { cards: userCards });
+
+    displayCards();
 }
 
 // Start game function
-function startGame() {
+async function startGame() {
     const username = localStorage.getItem('currentUser');
     if (!username) {
         alert('You must be logged in to start the game.');
         return;
     }
 
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    const availableCards = users[username]?.cards.filter(card => !card.used) || [];
+    const userRef = doc(db, 'users', username);
+    const userDoc = await getDoc(userRef);
+    const availableCards = userDoc.data()?.cards.filter(card => !card.used) || [];
 
     if (availableCards.length < 14) {
         alert('You need at least 14 cards to start the game.');
         return;
     }
 
-    const shuffledCards = availableCards.sort(() => 0.5 - Math.random());
-    const selectedCards = shuffledCards.slice(0, 14); // Select 14 cards
-    localStorage.setItem('gameCards', JSON.stringify(selectedCards));
-    window.location.href = 'game.html';
+    const shuffledCards = availableCards.sort(() => Math.random() - 0.5);
+    const gameRef = collection(db, 'games');
+    const newGameDoc = await addDoc(gameRef, { cards: shuffledCards, players: [username] });
+
+    localStorage.setItem('currentGame', newGameDoc.id);
+    window.location.href = 'game.html'; // Redirect to game page
 }
 
-// Display game cards on the game page
-function displayGameCards() {
-    const gameCards = JSON.parse(localStorage.getItem('gameCards')) || [];
-    const cardList = document.getElementById('gameCardsContainer');
-    cardList.innerHTML = '';
+// Display game cards function
+async function displayGameCards() {
+    const gameId = localStorage.getItem('currentGame');
+    if (!gameId) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    const gameRef = doc(db, 'games', gameId);
+    const gameDoc = await getDoc(gameRef);
+    const gameCards = gameDoc.data()?.cards || [];
+
+    const gameCardsContainer = document.getElementById('gameCardsContainer');
+    gameCardsContainer.innerHTML = '';
 
     gameCards.forEach(card => {
-        const cardItem = document.createElement('div');
-        cardItem.className = 'card-item';
-        cardItem.textContent = card.text;
-        cardItem.addEventListener('click', handleCardClick);
-        cardList.appendChild(cardItem);
+        const cardElement = document.createElement('div');
+        cardElement.className = 'game-card';
+        cardElement.style.backgroundColor = 'blue';
+        cardElement.textContent = card.text;
+        gameCardsContainer.appendChild(cardElement);
     });
 }
 
-// Handle card click event
-function handleCardClick(event) {
-    const cardItem = event.currentTarget;
-    const cardIndex = cardItem.getAttribute('data-index');
-    const cardText = cardItem.textContent;
-    const username = localStorage.getItem('currentUser');
-
-    if (cardItem.classList.contains('used')) {
-        return; // Do nothing if the card is already used
-    }
-
-    if (confirm(`Do you want to use the card: "${cardText}"?`)) {
-        const users = JSON.parse(localStorage.getItem('users')) || {};
-        users[username].cards[cardIndex].used = true;
-        localStorage.setItem('users', JSON.stringify(users));
-        cardItem.classList.add('used');
-        cardItem.removeEventListener('click', handleCardClick);
-    }
-}
-
-// End game and go back to start
-function endGame() {
-    localStorage.removeItem('gameCards'); // Clear game state
-    window.location.href = 'index.html'; // Redirect to the start screen
-}
-
-// Back button functionality
-function goBack() {
-    window.location.href = 'main.html';
-}
-
-// Initialization
-document.addEventListener('DOMContentLoaded', () => {
-    if (window.location.pathname.endsWith('index.html')) {
-        // Login and registration page logic
-        document.getElementById('registrationForm')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            register();
-        });
-
-        document.getElementById('loginForm')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            login();
-        });
-    } else if (window.location.pathname.endsWith('main.html')) {
-        displayWelcomeMessage();
-        document.getElementById('addCardsButton')?.addEventListener('click', () => window.location.href = 'add-cards.html');
-        document.getElementById('startGameButton')?.addEventListener('click', startGame);
-    } else if (window.location.pathname.endsWith('add-cards.html')) {
-        displayCards();
-        document.getElementById('addCardButton')?.addEventListener('click', addCard);
-        document.getElementById('goBackButton')?.addEventListener('click', goBack);
-    } else if (window.location.pathname.endsWith('game.html')) {
-        displayGameCards();
-        document.getElementById('endGameButton')?.addEventListener('click', endGame);
-    }
+// Event listeners
+document.getElementById('registrationForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    register();
 });
+
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    login();
+});
+
+document.getElementById('addCardButton').addEventListener('click', addCard);
+document.getElementById('goBackButton').addEventListener('click', () => window.location.href = 'index.html');
+document.getElementById('endGameButton').addEventListener('click', () => window.location.href = 'index.html');
+
+// Initialize page based on context
+if (document.getElementById('addCardsContainer')) {
+    displayCards();
+} else if (document.getElementById('gameArea')) {
+    displayGameCards();
+} else if (document.getElementById('authScreen')) {
+    displayWelcomeMessage();
+}

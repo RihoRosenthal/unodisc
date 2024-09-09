@@ -8,60 +8,14 @@
 </head>
 <body>
     <div id="gameArea">
+        <h1>Game Area</h1>
         <div id="gameCardsContainer"></div> <!-- Container for game cards -->
         <button id="endGameButton">Lõpeta mäng</button>
+        <button id="viewCardsButton">Vaata oma kaarte</button>
     </div>
-    <script>
-        // Function to display game cards on the game page
-        function displayGameCards() {
-            const gameCards = JSON.parse(localStorage.getItem('gameCards')) || [];
-            const cardContainer = document.getElementById('gameCardsContainer');
-            cardContainer.innerHTML = '';
-
-            gameCards.forEach((card, index) => {
-                const cardItem = document.createElement('div');
-                cardItem.className = 'card-item';
-                cardItem.textContent = card.text;
-                cardItem.dataset.index = index; // Store the index for identification
-                cardItem.addEventListener('click', handleCardClick); // Attach click event handler
-                if (card.used) {
-                    cardItem.classList.add('used'); // Grey out if card is already used
-                    cardItem.style.pointerEvents = 'none'; // Make unclickable
-                }
-                cardContainer.appendChild(cardItem);
-            });
-        }
-
-        // Function to handle card click event
-        function handleCardClick(event) {
-            const cardItem = event.currentTarget;
-            const cardIndex = cardItem.dataset.index; // Retrieve index from dataset
-            const cardText = cardItem.textContent;
-            const gameCards = JSON.parse(localStorage.getItem('gameCards')) || [];
-
-            if (cardItem.classList.contains('used')) {
-                return; // Do nothing if the card is already used
-            }
-
-            if (confirm(`Kas tahad seda kaarti kasutada?: "${cardText}"?`)) {
-                gameCards[cardIndex].used = true; // Mark card as used
-                localStorage.setItem('gameCards', JSON.stringify(gameCards)); // Update local storage
-                cardItem.classList.add('used'); // Grey out the card
-                cardItem.style.pointerEvents = 'none'; // Make it unclickable
-            }
-        }
-
-        // Function to handle end game button click
-        function endGame() {
-            localStorage.removeItem('gameCards'); // Clear the game state
-            window.location.href = 'index.html'; // Redirect to the start screen
-        }
-
-        // Initialization on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            displayGameCards();
-            document.getElementById('endGameButton').addEventListener('click', endGame);
-        });
-    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+    <script src="script.js" type="module"></script>
 </body>
 </html>
