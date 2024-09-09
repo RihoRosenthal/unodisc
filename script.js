@@ -1,21 +1,5 @@
-// Firebase SDK initialization
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-auth.js";
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAb5_fcWOzMtrGqIIjlZ7vbEowtyvVAxZE",
-  authDomain: "oob-uno.firebaseapp.com",
-  projectId: "oob-uno",
-  storageBucket: "oob-uno.appspot.com",
-  messagingSenderId: "988582411605",
-  appId: "1:988582411605:web:6a2ae0c8128353e3bd03dc",
-  measurementId: "G-4F533V9M69"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+// Firebase authentication instance from the window object
+const auth = window.auth;
 
 // Registration function
 function register() {
@@ -30,12 +14,15 @@ function register() {
         return;
     }
 
+    // Create a new user using Firebase
     createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
+            // Registration successful
             message.textContent = 'Registration successful!';
             message.style.color = 'green';
         })
         .catch((error) => {
+            // Display error message
             message.textContent = `Error: ${error.message}`;
             message.style.color = 'red';
         });
@@ -47,12 +34,15 @@ function login() {
     const password = document.getElementById('loginPassword').value;
     const message = document.getElementById('loginMessage');
 
+    // Sign in user with Firebase
     signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
-            window.localStorage.setItem('currentUser', email);
-            window.location.href = 'main.html';  // Redirect to main page on successful login
+            // Login successful
+            localStorage.setItem('currentUser', email);
+            window.location.href = 'main.html'; // Redirect to main page
         })
         .catch((error) => {
+            // Display error message
             message.textContent = `Error: ${error.message}`;
             message.style.color = 'red';
         });
@@ -80,8 +70,12 @@ function addCard() {
         return;
     }
 
-    // Fetch user data and add a card (this will need to be adapted to your backend setup)
-    // For example, using Firestore or Realtime Database
+    const users = JSON.parse(localStorage.getItem('users')) || {};
+    users[username] = users[username] || { cards: [] };
+    users[username].cards.push({ text: cardText, used: false });
+    localStorage.setItem('users', JSON.stringify(users));
+
+    displayCards();
 }
 
 // Display cards with delete option
@@ -93,17 +87,40 @@ function displayCards() {
         return;
     }
 
-    // Fetch user cards and display them (this will need to be adapted to your backend setup)
+    const users = JSON.parse(localStorage.getItem('users')) || {};
+    const userCards = users[username]?.cards || [];
+
+    cardList.innerHTML = '';
+    userCards.forEach((card, index) => {
+        const cardItem = document.createElement('div');
+        cardItem.className = card.used ? 'card-item used' : 'card-item';
+        cardItem.textContent = card.text;
+
+        // Add delete button
+        const deleteButton = document.createElement('span');
+        deleteButton.textContent = ' X';
+        deleteButton.style.color = 'red';
+        deleteButton.style.cursor = 'pointer';
+        deleteButton.style.marginLeft = '10px';
+        deleteButton.addEventListener('click', () => deleteCard(index));
+
+        cardItem.appendChild(deleteButton);
+        cardList.appendChild(cardItem);
+    });
 }
 
 // Delete card function
 function deleteCard(index) {
     const username = localStorage.getItem('currentUser');
-
-    // Fetch user data and delete a card (this will need to be adapted to your backend setup)
+    const users = JSON.parse(localStorage.getItem('users')) || {};
+    if (users[username]) {
+        users[username].cards.splice(index, 1);
+        localStorage.setItem('users', JSON.stringify(users));
+        displayCards();
+    }
 }
 
-// Start game
+// Start game function
 function startGame() {
     const username = localStorage.getItem('currentUser');
     if (!username) {
@@ -111,27 +128,33 @@ function startGame() {
         return;
     }
 
-    // Fetch user cards and start game (this will need to be adapted to your backend setup)
+    const users = JSON.parse(localStorage.getItem('users')) || {};
+    const availableCards = users[username]?.cards.filter(card => !card.used) || [];
+
+    if (availableCards.length < 14) {
+        alert('You need at least 14 cards to start the game.');
+        return;
+    }
+
+    const shuffledCards = availableCards.sort(() => 0.5 - Math.random());
+    const selectedCards = shuffledCards.slice(0, 14); // Select 14 cards
+    localStorage.setItem('gameCards', JSON.stringify(selectedCards));
+    window.location.href = 'game.html';
 }
 
 // Display game cards on the game page
 function displayGameCards() {
     const gameCards = JSON.parse(localStorage.getItem('gameCards')) || [];
-    const cardList = document.getElementById('gameCardsContainer'); // Correct ID
+    const cardList = document.getElementById('gameCardsContainer');
     cardList.innerHTML = '';
 
     gameCards.forEach(card => {
         const cardItem = document.createElement('div');
         cardItem.className = 'card-item';
         cardItem.textContent = card.text;
+        cardItem.addEventListener('click', handleCardClick);
         cardList.appendChild(cardItem);
     });
-}
-
-// End game and go back to start
-function endGame() {
-    localStorage.removeItem('gameCards'); // Clear game state
-    window.location.href = 'index.html'; // Redirect to the start screen
 }
 
 // Handle card click event
@@ -146,10 +169,18 @@ function handleCardClick(event) {
     }
 
     if (confirm(`Do you want to use the card: "${cardText}"?`)) {
-        // Mark card as used and save it (this will need to be adapted to your backend setup)
+        const users = JSON.parse(localStorage.getItem('users')) || {};
+        users[username].cards[cardIndex].used = true;
+        localStorage.setItem('users', JSON.stringify(users));
         cardItem.classList.add('used');
         cardItem.removeEventListener('click', handleCardClick);
     }
+}
+
+// End game and go back to start
+function endGame() {
+    localStorage.removeItem('gameCards'); // Clear game state
+    window.location.href = 'index.html'; // Redirect to the start screen
 }
 
 // Back button functionality
