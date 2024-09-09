@@ -1,26 +1,5 @@
-// Import the Firebase libraries
-import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, collection, addDoc, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
-
-// Your Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAb5_fcWOzMtrGqIIjlZ7vbEowtyvVAxZE",
-  authDomain: "oob-uno.firebaseapp.com",
-  projectId: "oob-uno",
-  storageBucket: "oob-uno.appspot.com",
-  messagingSenderId: "988582411605",
-  appId: "1:988582411605:web:6a2ae0c8128353e3bd03dc",
-  measurementId: "G-4F533V9M69"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
 // Registration
-async function register() {
+function register() {
     const username = document.getElementById('regUsername').value;
     const password = document.getElementById('regPassword').value;
     const verifyPassword = document.getElementById('regVerifyPassword').value;
@@ -32,128 +11,122 @@ async function register() {
         return;
     }
 
-    try {
-        await createUserWithEmailAndPassword(auth, username, password);
-        message.textContent = 'Registration successful!';
-        message.style.color = 'green';
-    } catch (error) {
-        message.textContent = `Error: ${error.message}`;
+    const users = JSON.parse(localStorage.getItem('users')) || {};
+    if (users[username]) {
+        message.textContent = 'Username already exists!';
         message.style.color = 'red';
+        return;
     }
+
+    users[username] = { password, cards: [] };
+    localStorage.setItem('users', JSON.stringify(users));
+    message.textContent = 'Registration successful!';
+    message.style.color = 'green';
 }
 
 // Login
-async function login() {
+function login() {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     const message = document.getElementById('loginMessage');
 
-    try {
-        await signInWithEmailAndPassword(auth, username, password);
+    const users = JSON.parse(localStorage.getItem('users')) || {};
+    if (users[username] && users[username].password === password) {
+        localStorage.setItem('currentUser', username);
         window.location.href = 'main.html';  // Redirect to main page on successful login
-    } catch (error) {
-        message.textContent = `Error: ${error.message}`;
+    } else {
+        message.textContent = 'Invalid username or password!';
         message.style.color = 'red';
     }
 }
 
 // Display welcome message on main screen
-async function displayWelcomeMessage() {
-    const user = auth.currentUser;
-    if (!user) {
+function displayWelcomeMessage() {
+    const username = localStorage.getItem('currentUser');
+    if (!username) {
         window.location.href = 'index.html';
         return;
     }
 
-    document.getElementById('welcomeMessage').textContent = `Welcome, ${user.email}`;
+    document.getElementById('welcomeMessage').textContent = `Welcome, ${username}`;
 }
 
 // Add card
-async function addCard() {
+function addCard() {
     const cardText = document.getElementById('newCardText').value;
     if (!cardText) return;
 
-    const user = auth.currentUser;
-    if (!user) {
+    const username = localStorage.getItem('currentUser');
+    if (!username) {
         alert('You must be logged in to add cards.');
         return;
     }
 
-    const cardsRef = collection(db, 'cards');
-    await addDoc(cardsRef, {
-        userId: user.uid,
-        text: cardText,
-        used: false
-    });
+    const users = JSON.parse(localStorage.getItem('users'));
+    users[username].cards.push({ text: cardText, used: false });
+    localStorage.setItem('users', JSON.stringify(users));
 
     displayCards();
 }
 
 // Display cards
-async function displayCards() {
+function displayCards() {
     const cardList = document.getElementById('cardList');
-    const user = auth.currentUser;
-    if (!user) {
+    const username = localStorage.getItem('currentUser');
+    if (!username) {
         window.location.href = 'index.html';
         return;
     }
 
-    const cardsRef = collection(db, 'cards');
-    const q = query(cardsRef, where('userId', '==', user.uid));
-    const querySnapshot = await getDocs(q);
-    
+    const users = JSON.parse(localStorage.getItem('users'));
     cardList.innerHTML = '';
-    querySnapshot.forEach((doc) => {
-        const cardData = doc.data();
+    users[username].cards.forEach((card, index) => {
         const cardItem = document.createElement('div');
-        cardItem.className = cardData.used ? 'card-item used' : 'card-item';
-        cardItem.textContent = cardData.text;
-        cardItem.setAttribute('data-id', doc.id);
+        cardItem.className = card.used ? 'card-item used' : 'card-item';
+        cardItem.textContent = card.text;
+        cardItem.setAttribute('data-index', index);
         cardItem.addEventListener('click', handleCardClick);
         cardList.appendChild(cardItem);
     });
 }
 
 // Handle card click event
-async function handleCardClick(event) {
+function handleCardClick(event) {
     const cardItem = event.currentTarget;
-    const cardId = cardItem.getAttribute('data-id');
+    const cardIndex = cardItem.getAttribute('data-index');
     const cardText = cardItem.textContent;
+    const username = localStorage.getItem('currentUser');
 
     if (cardItem.classList.contains('used')) {
         return; // Do nothing if the card is already used
     }
 
     if (confirm(`Do you want to use the card: "${cardText}"?`)) {
+        const users = JSON.parse(localStorage.getItem('users'));
+        users[username].cards[cardIndex].used = true;
+        localStorage.setItem('users', JSON.stringify(users));
         cardItem.classList.add('used');
         cardItem.removeEventListener('click', handleCardClick);
-
-        const cardRef = doc(db, 'cards', cardId);
-        await updateDoc(cardRef, {
-            used: true
-        });
     }
 }
 
 // Start game
-async function startGame() {
-    const user = auth.currentUser;
-    if (!user) {
+function startGame() {
+    const username = localStorage.getItem('currentUser');
+    if (!username) {
         alert('You must be logged in to start the game.');
         return;
     }
 
-    const cardsRef = collection(db, 'cards');
-    const q = query(cardsRef, where('userId', '==', user.uid), where('used', '==', false));
-    const querySnapshot = await getDocs(q);
+    const users = JSON.parse(localStorage.getItem('users'));
+    const availableCards = users[username].cards.filter(card => !card.used);
 
-    if (querySnapshot.size < 14) {
+    if (availableCards.length < 14) {
         alert('You need at least 14 cards to start the game.');
         return;
     }
 
-    const allCards = querySnapshot.docs.map(doc => doc.data().text);
-    const shuffledCards = allCards.sort(() => 0.5 - Math.random());
+    const shuffledCards = availableCards.sort(() => 0.5 - Math.random());
     const selectedCards = shuffledCards.slice(0, 18);
     localStorage.setItem('gameCards', JSON.stringify(selectedCards));
     window.location.href = 'game.html';
@@ -186,19 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('addCardButton')?.addEventListener('click', addCard);
         document.getElementById('goBackButton')?.addEventListener('click', goBack);
     } else if (window.location.pathname.endsWith('game.html')) {
-        let gameCards = JSON.parse(localStorage.getItem('gameCards')) || [];
-        const gameCardsContainer = document.getElementById('gameCardsContainer');
-        gameCards.forEach(cardText => {
-            const cardButton = document.createElement('button');
-            cardButton.textContent = cardText;
-            cardButton.className = 'card-item';
-            cardButton.setAttribute('data-text', cardText);
-            cardButton.addEventListener('click', handleCardClick);
-            gameCardsContainer.appendChild(cardButton);
-        });
-        document.getElementById('endGameButton')?.addEventListener('click', () => {
-            alert('Game over!');
-            window.location.href = 'main.html';
-        });
+        // Game page logic can go here if needed.
     }
 });
