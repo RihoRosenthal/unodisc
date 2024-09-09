@@ -1,135 +1,160 @@
-const usersKey = 'users';
-const cardsKey = 'cards';
+// Import the Firebase libraries
+import { initializeApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { getFirestore, collection, addDoc, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
+
+// Your Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAb5_fcWOzMtrGqIIjlZ7vbEowtyvVAxZE",
+  authDomain: "oob-uno.firebaseapp.com",
+  projectId: "oob-uno",
+  storageBucket: "oob-uno.appspot.com",
+  messagingSenderId: "988582411605",
+  appId: "1:988582411605:web:6a2ae0c8128353e3bd03dc",
+  measurementId: "G-4F533V9M69"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 // Registration
-function register() {
+async function register() {
     const username = document.getElementById('regUsername').value;
     const password = document.getElementById('regPassword').value;
     const verifyPassword = document.getElementById('regVerifyPassword').value;
     const message = document.getElementById('regMessage');
 
     if (password !== verifyPassword) {
-        message.textContent = 'Paroolid ei klapi!';
-        message.style.color = 'white';
+        message.textContent = 'Passwords do not match!';
+        message.style.color = 'red';
         return;
     }
 
-    let users = JSON.parse(localStorage.getItem(usersKey)) || {};
-    if (users[username]) {
-        message.textContent = 'Kasutajanimi juba olemas!';
-        message.style.color = 'white';
-        return;
+    try {
+        await createUserWithEmailAndPassword(auth, username, password);
+        message.textContent = 'Registration successful!';
+        message.style.color = 'green';
+    } catch (error) {
+        message.textContent = `Error: ${error.message}`;
+        message.style.color = 'red';
     }
-
-    users[username] = password;
-    localStorage.setItem(usersKey, JSON.stringify(users));
-    message.textContent = 'Korras. Logi sisse!';
-    message.style.color = 'white';
 }
 
 // Login
-function login() {
-    const username = document.getElementById('loginUsername');
-    const password = document.getElementById('loginPassword');
+async function login() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
     const message = document.getElementById('loginMessage');
 
-    if (!username || !password || !message) {
-        console.error('Required elements not found in the DOM');
-        return;
-    }
-
-    const usernameValue = username.value;
-    const passwordValue = password.value;
-
-    let users = JSON.parse(localStorage.getItem(usersKey)) || {};
-    if (users[usernameValue] && users[usernameValue] === passwordValue) {
-        localStorage.setItem('loggedInUser', usernameValue);
-        window.location.href = 'main.html';
-    } else {
-        message.textContent = 'Vale kasutajanimi või parool!';
-        message.style.color = 'white';
+    try {
+        await signInWithEmailAndPassword(auth, username, password);
+        window.location.href = 'main.html';  // Redirect to main page on successful login
+    } catch (error) {
+        message.textContent = `Error: ${error.message}`;
+        message.style.color = 'red';
     }
 }
 
 // Display welcome message on main screen
-function displayWelcomeMessage() {
-    const username = localStorage.getItem('loggedInUser');
-    if (!username) {
+async function displayWelcomeMessage() {
+    const user = auth.currentUser;
+    if (!user) {
         window.location.href = 'index.html';
-    }
-
-    document.getElementById('welcomeMessage').textContent = `Tere, ${username}`;
-}
-
-// Add card
-function addCard() {
-    const cardText = document.getElementById('newCardText').value;
-    if (!cardText) return;
-
-    let cards = JSON.parse(localStorage.getItem(cardsKey)) || [];
-    if (cards.length >= 40) {
-        alert('Maximum number of cards reached.');
         return;
     }
 
-    cards.push(cardText);
-    localStorage.setItem(cardsKey, JSON.stringify(cards));
+    document.getElementById('welcomeMessage').textContent = `Welcome, ${user.email}`;
+}
+
+// Add card
+async function addCard() {
+    const cardText = document.getElementById('newCardText').value;
+    if (!cardText) return;
+
+    const user = auth.currentUser;
+    if (!user) {
+        alert('You must be logged in to add cards.');
+        return;
+    }
+
+    const cardsRef = collection(db, 'cards');
+    await addDoc(cardsRef, {
+        userId: user.uid,
+        text: cardText,
+        used: false
+    });
+
     displayCards();
 }
 
 // Display cards
-function displayCards() {
+async function displayCards() {
     const cardList = document.getElementById('cardList');
-    let cards = JSON.parse(localStorage.getItem(cardsKey)) || [];
-    cardList.innerHTML = '';
+    const user = auth.currentUser;
+    if (!user) {
+        window.location.href = 'index.html';
+        return;
+    }
 
-    cards.forEach((card, index) => {
+    const cardsRef = collection(db, 'cards');
+    const q = query(cardsRef, where('userId', '==', user.uid));
+    const querySnapshot = await getDocs(q);
+    
+    cardList.innerHTML = '';
+    querySnapshot.forEach((doc) => {
+        const cardData = doc.data();
         const cardItem = document.createElement('div');
-        cardItem.className = 'card-item';
-        cardItem.textContent = card;
-        cardItem.setAttribute('data-index', index);
+        cardItem.className = cardData.used ? 'card-item used' : 'card-item';
+        cardItem.textContent = cardData.text;
+        cardItem.setAttribute('data-id', doc.id);
         cardItem.addEventListener('click', handleCardClick);
         cardList.appendChild(cardItem);
     });
 }
 
 // Handle card click event
-function handleCardClick(event) {
+async function handleCardClick(event) {
     const cardItem = event.currentTarget;
-    const cardIndex = cardItem.getAttribute('data-index');
+    const cardId = cardItem.getAttribute('data-id');
     const cardText = cardItem.textContent;
 
     if (cardItem.classList.contains('used')) {
         return; // Do nothing if the card is already used
     }
 
-    if (confirm(`Kas soovite kasutada kaarti: "${cardText}"?`)) {
+    if (confirm(`Do you want to use the card: "${cardText}"?`)) {
         cardItem.classList.add('used');
         cardItem.removeEventListener('click', handleCardClick);
 
-        let cards = JSON.parse(localStorage.getItem(cardsKey)) || [];
-        // Optionally handle the card usage here (e.g., move it to another list)
+        const cardRef = doc(db, 'cards', cardId);
+        await updateDoc(cardRef, {
+            used: true
+        });
     }
 }
 
-// Remove card
-function removeCard(index) {
-    let cards = JSON.parse(localStorage.getItem(cardsKey)) || [];
-    cards.splice(index, 1);
-    localStorage.setItem(cardsKey, JSON.stringify(cards));
-    displayCards();
-}
-
 // Start game
-function startGame() {
-    let cards = JSON.parse(localStorage.getItem(cardsKey)) || [];
-    if (cards.length < 14) {
+async function startGame() {
+    const user = auth.currentUser;
+    if (!user) {
+        alert('You must be logged in to start the game.');
+        return;
+    }
+
+    const cardsRef = collection(db, 'cards');
+    const q = query(cardsRef, where('userId', '==', user.uid), where('used', '==', false));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.size < 14) {
         alert('You need at least 14 cards to start the game.');
         return;
     }
 
-    let shuffledCards = cards.sort(() => 0.5 - Math.random());
-    let selectedCards = shuffledCards.slice(0, 18);
+    const allCards = querySnapshot.docs.map(doc => doc.data().text);
+    const shuffledCards = allCards.sort(() => 0.5 - Math.random());
+    const selectedCards = shuffledCards.slice(0, 18);
     localStorage.setItem('gameCards', JSON.stringify(selectedCards));
     window.location.href = 'game.html';
 }
@@ -172,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
             gameCardsContainer.appendChild(cardButton);
         });
         document.getElementById('endGameButton')?.addEventListener('click', () => {
-            alert('Mäng läbi!');
+            alert('Game over!');
             window.location.href = 'main.html';
         });
     }

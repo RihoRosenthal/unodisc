@@ -10,6 +10,30 @@
     <div id="welcomeMessage"></div>
     <button id="addCardsButton">Lisa kaarte</button>
     <button id="startGameButton">Alusta Uno disci</button>
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <!-- Firebase Authentication -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    <!-- Your Firebase Config -->
+    <script>
+        import { initializeApp } from "firebase/app";
+        import { getAnalytics } from "firebase/analytics";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAb5_fcWOzMtrGqIIjlZ7vbEowtyvVAxZE",
+            authDomain: "oob-uno.firebaseapp.com",
+            projectId: "oob-uno",
+            storageBucket: "oob-uno.appspot.com",
+            messagingSenderId: "988582411605",
+            appId: "1:988582411605:web:6a2ae0c8128353e3bd03dc",
+            measurementId: "G-4F533V9M69"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
