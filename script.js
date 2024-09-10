@@ -27,8 +27,9 @@ async function register() {
     }
 
     try {
-        await auth.createUserWithEmailAndPassword(email, password);
-        const userRef = db.collection('users').doc(email);
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const userId = userCredential.user.uid;
+        const userRef = db.collection('users').doc(userId);
         await userRef.set({ cards: [] });
         message.textContent = 'Registration successful!';
         message.style.color = 'green';
@@ -46,8 +47,9 @@ async function login() {
     const message = document.getElementById('loginMessage');
 
     try {
-        await auth.signInWithEmailAndPassword(email, password);
-        localStorage.setItem('currentUser', email);
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const userId = userCredential.user.uid;
+        localStorage.setItem('currentUser', userId);
         window.location.href = 'main.html'; // Redirect to main page
     } catch (error) {
         console.error('Login error:', error);
@@ -62,14 +64,13 @@ async function addCard() {
     const cardText = document.getElementById('newCardText').value;
     if (!cardText) return;
 
-    const user = firebase.auth().currentUser;
-    if (!user) {
+    const userId = localStorage.getItem('currentUser');
+    if (!userId) {
         alert('You must be logged in to add cards.');
         return;
     }
 
     try {
-        const userId = user.uid; // Use Firebase Auth UID
         const userRef = db.collection('users').doc(userId);
         await userRef.update({
             cards: firebase.firestore.FieldValue.arrayUnion({ text: cardText, used: false })
@@ -81,19 +82,18 @@ async function addCard() {
     }
 }
 
-
 // Display cards with delete option
 async function displayCards() {
     console.log("Display Cards function called"); // Debugging
     const cardList = document.getElementById('cardList');
-    const email = localStorage.getItem('currentUser');
-    if (!email) {
+    const userId = localStorage.getItem('currentUser');
+    if (!userId) {
         window.location.href = 'index.html';
         return;
     }
 
     try {
-        const userRef = db.collection('users').doc(email);
+        const userRef = db.collection('users').doc(userId);
         const userDoc = await userRef.get();
         const userCards = userDoc.data()?.cards || [];
 
@@ -121,14 +121,14 @@ async function displayCards() {
 
 // Delete card function
 async function deleteCard(index) {
-    const email = localStorage.getItem('currentUser');
-    if (!email) {
+    const userId = localStorage.getItem('currentUser');
+    if (!userId) {
         alert('You must be logged in to delete cards.');
         return;
     }
 
     try {
-        const userRef = db.collection('users').doc(email);
+        const userRef = db.collection('users').doc(userId);
         const userDoc = await userRef.get();
         const userCards = userDoc.data()?.cards || [];
         userCards.splice(index, 1); // Remove card at index
@@ -141,26 +141,41 @@ async function deleteCard(index) {
     }
 }
 
-// Event listeners for login and registration
-document.getElementById('loginForm').addEventListener('submit', (event) => {
-    event.preventDefault();
-    login();
-});
+// Ensure all elements exist before adding event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+    const registrationForm = document.getElementById('registrationForm');
+    const addCardButton = document.getElementById('addCardButton');
+    const goBackButton = document.getElementById('goBackButton');
+    const startGameButton = document.getElementById('startGameButton');
 
-document.getElementById('registrationForm').addEventListener('submit', (event) => {
-    event.preventDefault();
-    register();
-});
+    if (loginForm) {
+        loginForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            login();
+        });
+    }
 
-// Event listeners for adding cards
-document.getElementById('addCardButton').addEventListener('click', addCard);
+    if (registrationForm) {
+        registrationForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            register();
+        });
+    }
 
-// Event listener for goBackButton on add-cards.html
-document.getElementById('goBackButton')?.addEventListener('click', () => {
-    window.location.href = 'main.html'; // Redirect to main page
-});
+    if (addCardButton) {
+        addCardButton.addEventListener('click', addCard);
+    }
 
-// Event listener for startGameButton on main.html
-document.getElementById('startGameButton')?.addEventListener('click', () => {
-    window.location.href = 'game.html'; // Redirect to game page
+    if (goBackButton) {
+        goBackButton.addEventListener('click', () => {
+            window.location.href = 'main.html'; // Redirect to main page
+        });
+    }
+
+    if (startGameButton) {
+        startGameButton.addEventListener('click', () => {
+            window.location.href = 'game.html'; // Redirect to game page
+        });
+    }
 });
