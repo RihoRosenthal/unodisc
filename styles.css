@@ -28,22 +28,25 @@ body::before {
     z-index: -1;
 }
 
-/* Style for card buttons */
+/* Style for the card items (Add Cards screen) */
 .card-item {
-    background-color: #007BFF; /* Default blue color */
+    background-color: #007BFF; /* Blue color for card items */
     color: white;
     font-weight: bold;
     padding: 10px;
     margin: 5px;
     border-radius: 8px;
     cursor: pointer;
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    width: 80%;
+    max-width: 300px;
     text-align: center;
 }
 
-/* Style for greyed-out or used cards */
-.card-item.used {
-    background-color: #888; /* Grey color */
+/* Style for the used card items (Game screen) */
+.card-item.played {
+    background-color: #888; /* Grey color for used cards */
     cursor: not-allowed;
 }
 
