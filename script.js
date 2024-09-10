@@ -54,17 +54,6 @@ async function login() {
     }
 }
 
-// Display welcome message on main screen
-function displayWelcomeMessage() {
-    const username = localStorage.getItem('currentUser');
-    if (!username) {
-        window.location.href = 'index.html';
-        return;
-    }
-
-    document.getElementById('welcomeMessage').textContent = `Welcome, ${username}`;
-}
-
 // Add card function
 async function addCard() {
     console.log("Add Card button clicked"); // Debugging
@@ -82,7 +71,7 @@ async function addCard() {
         cards: firebase.firestore.FieldValue.arrayUnion({ text: cardText, used: false })
     });
 
-    window.location.href = 'add-cards.html'; // Redirect to ensure the card is displayed
+    displayCards();
 }
 
 // Display cards with delete option
@@ -120,98 +109,41 @@ async function displayCards() {
 
 // Delete card function
 async function deleteCard(index) {
-    console.log(`Delete Card function called for index: ${index}`); // Debugging
     const username = localStorage.getItem('currentUser');
+    if (!username) {
+        alert('You must be logged in to delete cards.');
+        return;
+    }
+
     const userRef = db.collection('users').doc(username);
     const userDoc = await userRef.get();
     const userCards = userDoc.data()?.cards || [];
-    
-    userCards.splice(index, 1);
-    await userRef.update({ cards: userCards });
+    userCards.splice(index, 1); // Remove card at index
 
+    await userRef.update({ cards: userCards });
     displayCards();
 }
 
-// Start game function
-async function startGame() {
-    console.log("Start Game button clicked"); // Debugging
-    const username = localStorage.getItem('currentUser');
-    if (!username) {
-        alert('You must be logged in to start the game.');
-        return;
-    }
+// Event listeners for login and registration
+document.getElementById('loginForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    login();
+});
 
-    const userRef = db.collection('users').doc(username);
-    const userDoc = await userRef.get();
-    const availableCards = userDoc.data()?.cards.filter(card => !card.used) || [];
+document.getElementById('registrationForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    register();
+});
 
-    if (availableCards.length < 14) {
-        alert('You need at least 14 cards to start the game.');
-        return;
-    }
+// Event listeners for adding cards
+document.getElementById('addCardButton').addEventListener('click', addCard);
 
-    const shuffledCards = availableCards.sort(() => Math.random() - 0.5);
-    const gameRef = db.collection('games');
-    const newGameDoc = await gameRef.add({ cards: shuffledCards, players: [username] });
+// Event listener for goBackButton on add-cards.html
+document.getElementById('goBackButton')?.addEventListener('click', () => {
+    window.location.href = 'main.html'; // Redirect to main page
+});
 
-    localStorage.setItem('currentGame', newGameDoc.id);
+// Event listener for startGameButton on main.html
+document.getElementById('startGameButton')?.addEventListener('click', () => {
     window.location.href = 'game.html'; // Redirect to game page
-}
-
-// Display game cards function
-async function displayGameCards() {
-    console.log("Display Game Cards function called"); // Debugging
-    const gameId = localStorage.getItem('currentGame');
-    if (!gameId) {
-        window.location.href = 'index.html';
-        return;
-    }
-
-    const gameRef = db.collection('games').doc(gameId);
-    const gameDoc = await gameRef.get();
-    const gameCards = gameDoc.data()?.cards || [];
-
-    const gameCardsContainer = document.getElementById('gameCardsContainer');
-    gameCardsContainer.innerHTML = '';
-
-    gameCards.forEach(card => {
-        const cardElement = document.createElement('div');
-        cardElement.className = 'game-card';
-        cardElement.style.backgroundColor = 'blue';
-        cardElement.textContent = card.text;
-        gameCardsContainer.appendChild(cardElement);
-    });
-}
-
-// Ensure the document is fully loaded before attaching event listeners
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM fully loaded and parsed"); // Debugging
-
-    // Attach event listeners for forms and buttons
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) loginForm.addEventListener('submit', (e) => { e.preventDefault(); login(); });
-
-    const registrationForm = document.getElementById('registrationForm');
-    if (registrationForm) registrationForm.addEventListener('submit', (e) => { e.preventDefault(); register(); });
-
-    const addCardButton = document.getElementById('addCardButton');
-    if (addCardButton) addCardButton.addEventListener('click', addCard);
-
-    const goBackButton = document.getElementById('goBackButton');
-    if (goBackButton) goBackButton.addEventListener('click', () => window.location.href = 'main.html');
-
-    const endGameButton = document.getElementById('endGameButton');
-    if (endGameButton) endGameButton.addEventListener('click', () => window.location.href = 'main.html');
-
-    const startGameButton = document.getElementById('startGameButton');
-    if (startGameButton) startGameButton.addEventListener('click', startGame);
-
-    // Initialize specific page contexts
-    if (document.getElementById('addCardsContainer')) {
-        displayCards();
-    } else if (document.getElementById('gameArea')) {
-        displayGameCards();
-    } else if (document.getElementById('authScreen')) {
-        displayWelcomeMessage();
-    }
 });
