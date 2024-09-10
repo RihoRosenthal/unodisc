@@ -55,7 +55,7 @@ async function login() {
 }
 
 // Display welcome message on main screen
-async function displayWelcomeMessage() {
+function displayWelcomeMessage() {
     const username = localStorage.getItem('currentUser');
     if (!username) {
         window.location.href = 'index.html';
@@ -178,26 +178,33 @@ async function displayGameCards() {
     });
 }
 
-// Event listeners
-document.getElementById('registrationForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    register();
+// Ensure the document is fully loaded before attaching event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    // Attach event listeners for forms and buttons
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) loginForm.addEventListener('submit', (e) => { e.preventDefault(); login(); });
+
+    const registrationForm = document.getElementById('registrationForm');
+    if (registrationForm) registrationForm.addEventListener('submit', (e) => { e.preventDefault(); register(); });
+
+    const addCardButton = document.getElementById('addCardButton');
+    if (addCardButton) addCardButton.addEventListener('click', addCard);
+
+    const goBackButton = document.getElementById('goBackButton');
+    if (goBackButton) goBackButton.addEventListener('click', () => window.location.href = 'main.html');
+
+    const endGameButton = document.getElementById('endGameButton');
+    if (endGameButton) endGameButton.addEventListener('click', () => window.location.href = 'main.html');
+
+    const startGameButton = document.getElementById('startGameButton');
+    if (startGameButton) startGameButton.addEventListener('click', startGame);
+
+    // Initialize specific page contexts
+    if (document.getElementById('addCardsContainer')) {
+        displayCards();
+    } else if (document.getElementById('gameArea')) {
+        displayGameCards();
+    } else if (document.getElementById('authScreen')) {
+        displayWelcomeMessage();
+    }
 });
-
-document.getElementById('loginForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    login();
-});
-
-document.getElementById('addCardButton').addEventListener('click', addCard);
-document.getElementById('goBackButton').addEventListener('click', () => window.location.href = 'index.html');
-document.getElementById('endGameButton').addEventListener('click', () => window.location.href = 'index.html');
-
-// Initialize page based on context
-if (document.getElementById('addCardsContainer')) {
-    displayCards();
-} else if (document.getElementById('gameArea')) {
-    displayGameCards();
-} else if (document.getElementById('authScreen')) {
-    displayWelcomeMessage();
-}
