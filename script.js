@@ -82,7 +82,7 @@ async function addCard() {
         cards: firebase.firestore.FieldValue.arrayUnion({ text: cardText, used: false })
     });
 
-    displayCards();
+    window.location.href = 'add-cards.html'; // Redirect to ensure the card is displayed
 }
 
 // Display cards with delete option
@@ -195,9 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (registrationForm) registrationForm.addEventListener('submit', (e) => { e.preventDefault(); register(); });
 
     const addCardButton = document.getElementById('addCardButton');
-    if (addCardButton) addCardButton.addEventListener('click', () => {
-        window.location.href = 'add-card.html'; // Ensure this points to the card adding page
-    });
+    if (addCardButton) addCardButton.addEventListener('click', addCard);
 
     const goBackButton = document.getElementById('goBackButton');
     if (goBackButton) goBackButton.addEventListener('click', () => window.location.href = 'main.html');
