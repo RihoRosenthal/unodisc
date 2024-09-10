@@ -15,7 +15,7 @@ const db = firebase.firestore();
 
 // Registration function
 async function register() {
-    const email = document.getElementById('regEmail').value;
+    const email = document.getElementById('regEmail').value.trim(); // Trim whitespace
     const password = document.getElementById('regPassword').value;
     const verifyPassword = document.getElementById('regVerifyPassword').value;
     const message = document.getElementById('regMessage');
@@ -34,7 +34,7 @@ async function register() {
         message.textContent = 'Registration successful!';
         message.style.color = 'green';
     } catch (error) {
-        console.error('Registration error:', error);
+        console.error('Registration error:', error.message);
         message.textContent = error.message;
         message.style.color = 'red';
     }
@@ -42,9 +42,15 @@ async function register() {
 
 // Login function
 async function login() {
-    const email = document.getElementById('loginEmail').value;
+    const email = document.getElementById('loginEmail').value.trim(); // Trim whitespace
     const password = document.getElementById('loginPassword').value;
     const message = document.getElementById('loginMessage');
+
+    if (!email || !password) {
+        message.textContent = 'Please enter both email and password!';
+        message.style.color = 'red';
+        return;
+    }
 
     try {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
@@ -52,7 +58,7 @@ async function login() {
         localStorage.setItem('currentUser', email); // Use email as user ID
         window.location.href = 'main.html'; // Redirect to main page
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Login error:', error.message);
         message.textContent = 'Invalid email or password!';
         message.style.color = 'red';
     }
@@ -60,7 +66,7 @@ async function login() {
 
 // Add card function
 async function addCard() {
-    const cardText = document.getElementById('newCardText').value;
+    const cardText = document.getElementById('newCardText').value.trim(); // Trim whitespace
     if (!cardText) return;
 
     const userEmail = localStorage.getItem('currentUser');
@@ -76,7 +82,7 @@ async function addCard() {
         });
         displayCards();
     } catch (error) {
-        console.error('Add card error:', error);
+        console.error('Add card error:', error.message);
     }
 }
 
@@ -112,7 +118,7 @@ async function displayCards() {
             cardList.appendChild(cardItem);
         });
     } catch (error) {
-        console.error('Display cards error:', error);
+        console.error('Display cards error:', error.message);
     }
 }
 
@@ -133,7 +139,7 @@ async function deleteCard(index) {
         await userRef.update({ cards: userCards });
         displayCards();
     } catch (error) {
-        console.error('Delete card error:', error);
+        console.error('Delete card error:', error.message);
     }
 }
 
@@ -166,7 +172,7 @@ async function startGame() {
         localStorage.setItem('selectedCards', JSON.stringify(selectedCards));
         window.location.href = 'game.html'; // Redirect to game page
     } catch (error) {
-        console.error('Start game error:', error);
+        console.error('Start game error:', error.message);
     }
 }
 
