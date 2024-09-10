@@ -1,9 +1,4 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc } from "firebase/firestore";
-
-// Your web app's Firebase configuration
+// Initialize Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyAb5_fcWOzMtrGqIIjlZ7vbEowtyvVAxZE",
     authDomain: "oob-uno.firebaseapp.com",
@@ -14,10 +9,9 @@ const firebaseConfig = {
     measurementId: "G-4F533V9M69"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 // Registration function
 async function register() {
@@ -33,9 +27,9 @@ async function register() {
     }
 
     try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        const userRef = doc(db, 'users', email);
-        await setDoc(userRef, { cards: [] });
+        await auth.createUserWithEmailAndPassword(email, password);
+        const userRef = db.collection('users').doc(email);
+        await userRef.set({ cards: [] });
         message.textContent = 'Registration successful!';
         message.style.color = 'green';
     } catch (error) {
@@ -51,7 +45,7 @@ async function login() {
     const message = document.getElementById('loginMessage');
 
     try {
-        await signInWithEmailAndPassword(auth, email, password);
+        await auth.signInWithEmailAndPassword(email, password);
         localStorage.setItem('currentUser', email);
         window.location.href = 'main.html'; // Redirect to main page
     } catch (error) {
@@ -82,8 +76,8 @@ async function addCard() {
         return;
     }
 
-    const userRef = doc(db, 'users', username);
-    await updateDoc(userRef, {
+    const userRef = db.collection('users').doc(username);
+    await userRef.update({
         cards: firebase.firestore.FieldValue.arrayUnion({ text: cardText, used: false })
     });
 
@@ -99,8 +93,8 @@ async function displayCards() {
         return;
     }
 
-    const userRef = doc(db, 'users', username);
-    const userDoc = await getDoc(userRef);
+    const userRef = db.collection('users').doc(username);
+    const userDoc = await userRef.get();
     const userCards = userDoc.data()?.cards || [];
 
     cardList.innerHTML = '';
@@ -125,12 +119,12 @@ async function displayCards() {
 // Delete card function
 async function deleteCard(index) {
     const username = localStorage.getItem('currentUser');
-    const userRef = doc(db, 'users', username);
-    const userDoc = await getDoc(userRef);
+    const userRef = db.collection('users').doc(username);
+    const userDoc = await userRef.get();
     const userCards = userDoc.data()?.cards || [];
     
     userCards.splice(index, 1);
-    await updateDoc(userRef, { cards: userCards });
+    await userRef.update({ cards: userCards });
 
     displayCards();
 }
@@ -143,8 +137,8 @@ async function startGame() {
         return;
     }
 
-    const userRef = doc(db, 'users', username);
-    const userDoc = await getDoc(userRef);
+    const userRef = db.collection('users').doc(username);
+    const userDoc = await userRef.get();
     const availableCards = userDoc.data()?.cards.filter(card => !card.used) || [];
 
     if (availableCards.length < 14) {
@@ -153,8 +147,8 @@ async function startGame() {
     }
 
     const shuffledCards = availableCards.sort(() => Math.random() - 0.5);
-    const gameRef = collection(db, 'games');
-    const newGameDoc = await addDoc(gameRef, { cards: shuffledCards, players: [username] });
+    const gameRef = db.collection('games');
+    const newGameDoc = await gameRef.add({ cards: shuffledCards, players: [username] });
 
     localStorage.setItem('currentGame', newGameDoc.id);
     window.location.href = 'game.html'; // Redirect to game page
@@ -168,8 +162,8 @@ async function displayGameCards() {
         return;
     }
 
-    const gameRef = doc(db, 'games', gameId);
-    const gameDoc = await getDoc(gameRef);
+    const gameRef = db.collection('games').doc(gameId);
+    const gameDoc = await gameRef.get();
     const gameCards = gameDoc.data()?.cards || [];
 
     const gameCardsContainer = document.getElementById('gameCardsContainer');
