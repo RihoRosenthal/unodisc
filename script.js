@@ -29,7 +29,7 @@ async function register() {
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const userId = userCredential.user.uid;
-        const userRef = db.collection('users').doc(userId);
+        const userRef = db.collection('users').doc(email); // Using email as user ID
         await userRef.set({ cards: [] });
         message.textContent = 'Registration successful!';
         message.style.color = 'green';
@@ -49,7 +49,7 @@ async function login() {
     try {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
         const userId = userCredential.user.uid;
-        localStorage.setItem('currentUser', userId);
+        localStorage.setItem('currentUser', email); // Use email as user ID
         window.location.href = 'main.html'; // Redirect to main page
     } catch (error) {
         console.error('Login error:', error);
@@ -60,22 +60,20 @@ async function login() {
 
 // Add card function
 async function addCard() {
-    console.log("Add Card button clicked"); // Debugging
     const cardText = document.getElementById('newCardText').value;
     if (!cardText) return;
 
-    const userId = localStorage.getItem('currentUser');
-    if (!userId) {
+    const userEmail = localStorage.getItem('currentUser');
+    if (!userEmail) {
         alert('You must be logged in to add cards.');
         return;
     }
 
     try {
-        const userRef = db.collection('users').doc(userId);
+        const userRef = db.collection('users').doc(userEmail);
         await userRef.update({
             cards: firebase.firestore.FieldValue.arrayUnion({ text: cardText, used: false })
         });
-        console.log("Card added successfully"); // Debugging
         displayCards();
     } catch (error) {
         console.error('Add card error:', error);
@@ -84,16 +82,15 @@ async function addCard() {
 
 // Display cards with delete option
 async function displayCards() {
-    console.log("Display Cards function called"); // Debugging
     const cardList = document.getElementById('cardList');
-    const userId = localStorage.getItem('currentUser');
-    if (!userId) {
+    const userEmail = localStorage.getItem('currentUser');
+    if (!userEmail) {
         window.location.href = 'index.html';
         return;
     }
 
     try {
-        const userRef = db.collection('users').doc(userId);
+        const userRef = db.collection('users').doc(userEmail);
         const userDoc = await userRef.get();
         const userCards = userDoc.data()?.cards || [];
 
@@ -121,61 +118,95 @@ async function displayCards() {
 
 // Delete card function
 async function deleteCard(index) {
-    const userId = localStorage.getItem('currentUser');
-    if (!userId) {
+    const userEmail = localStorage.getItem('currentUser');
+    if (!userEmail) {
         alert('You must be logged in to delete cards.');
         return;
     }
 
     try {
-        const userRef = db.collection('users').doc(userId);
+        const userRef = db.collection('users').doc(userEmail);
         const userDoc = await userRef.get();
         const userCards = userDoc.data()?.cards || [];
         userCards.splice(index, 1); // Remove card at index
 
         await userRef.update({ cards: userCards });
-        console.log("Card deleted successfully"); // Debugging
         displayCards();
     } catch (error) {
         console.error('Delete card error:', error);
     }
 }
 
-// Ensure all elements exist before adding event listeners
-document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('loginForm');
-    const registrationForm = document.getElementById('registrationForm');
-    const addCardButton = document.getElementById('addCardButton');
-    const goBackButton = document.getElementById('goBackButton');
-    const startGameButton = document.getElementById('startGameButton');
+// Start game function
+async function startGame() {
+    const userEmail = localStorage.getItem('currentUser');
+    if (!userEmail) {
+        alert('You must be logged in to start the game.');
+        return;
+    }
 
-    if (loginForm) {
-        loginForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            login();
+    try {
+        const userRef = db.collection('users').doc(userEmail);
+        const userDoc = await userRef.get();
+        const userCards = userDoc.data()?.cards || [];
+
+        if (userCards.length < 14) {
+            alert('You need at least 14 cards to start the game.');
+            return;
+        }
+
+        const selectedCards = [];
+        while (selectedCards.length < 14) {
+            const randomIndex = Math.floor(Math.random() * userCards.length);
+            if (!selectedCards.includes(userCards[randomIndex])) {
+                selectedCards.push(userCards[randomIndex]);
+            }
+        }
+
+        localStorage.setItem('selectedCards', JSON.stringify(selectedCards));
+        window.location.href = 'game.html'; // Redirect to game page
+    } catch (error) {
+        console.error('Start game error:', error);
+    }
+}
+
+// End game function
+function endGame() {
+    localStorage.removeItem('selectedCards');
+    window.location.href = 'main.html'; // Redirect to main page
+}
+
+// View cards function
+function viewCards() {
+    window.location.href = 'add-cards.html'; // Redirect to add cards page
+}
+
+// Event listeners
+document.getElementById('addCardButton')?.addEventListener('click', addCard);
+document.getElementById('goBackButton')?.addEventListener('click', () => window.location.href = 'main.html');
+document.getElementById('startGameButton')?.addEventListener('click', startGame);
+document.getElementById('endGameButton')?.addEventListener('click', endGame);
+document.getElementById('viewCardsButton')?.addEventListener('click', viewCards);
+
+// Load cards on the add cards page
+if (document.getElementById('cardList')) {
+    displayCards();
+}
+
+// Load selected cards for the game
+if (document.getElementById('gameCardsContainer')) {
+    const selectedCards = JSON.parse(localStorage.getItem('selectedCards')) || [];
+    const gameCardsContainer = document.getElementById('gameCardsContainer');
+    gameCardsContainer.innerHTML = '';
+
+    selectedCards.forEach((card, index) => {
+        const cardItem = document.createElement('div');
+        cardItem.className = 'game-card';
+        cardItem.textContent = card.text;
+        cardItem.addEventListener('click', () => {
+            cardItem.classList.toggle('played');
+            cardItem.classList.toggle('unused');
         });
-    }
-
-    if (registrationForm) {
-        registrationForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            register();
-        });
-    }
-
-    if (addCardButton) {
-        addCardButton.addEventListener('click', addCard);
-    }
-
-    if (goBackButton) {
-        goBackButton.addEventListener('click', () => {
-            window.location.href = 'main.html'; // Redirect to main page
-        });
-    }
-
-    if (startGameButton) {
-        startGameButton.addEventListener('click', () => {
-            window.location.href = 'game.html'; // Redirect to game page
-        });
-    }
-});
+        gameCardsContainer.appendChild(cardItem);
+    });
+}
