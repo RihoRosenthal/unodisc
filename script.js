@@ -27,7 +27,7 @@ function addCard() {
     let cards = JSON.parse(localStorage.getItem('cards')) || [];
     cards.push({ text: cardText, used: false });
     localStorage.setItem('cards', JSON.stringify(cards));
-    displayCards();
+    displayCards(); // Refresh the card list
 }
 
 // Display cards with delete option
@@ -59,7 +59,7 @@ function deleteCard(index) {
     let cards = JSON.parse(localStorage.getItem('cards')) || [];
     cards.splice(index, 1); // Remove card at index
     localStorage.setItem('cards', JSON.stringify(cards));
-    displayCards();
+    displayCards(); // Refresh the card list
 }
 
 // Start game function
@@ -74,8 +74,9 @@ function startGame() {
     const selectedCards = [];
     while (selectedCards.length < 14) {
         const randomIndex = Math.floor(Math.random() * cards.length);
-        if (!selectedCards.includes(cards[randomIndex])) {
-            selectedCards.push(cards[randomIndex]);
+        const card = cards[randomIndex];
+        if (!selectedCards.includes(card)) {
+            selectedCards.push(card);
         }
     }
 
