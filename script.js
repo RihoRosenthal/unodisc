@@ -62,14 +62,15 @@ async function addCard() {
     const cardText = document.getElementById('newCardText').value;
     if (!cardText) return;
 
-    const email = localStorage.getItem('currentUser');
-    if (!email) {
+    const user = firebase.auth().currentUser;
+    if (!user) {
         alert('You must be logged in to add cards.');
         return;
     }
 
     try {
-        const userRef = db.collection('users').doc(email);
+        const userId = user.uid; // Use Firebase Auth UID
+        const userRef = db.collection('users').doc(userId);
         await userRef.update({
             cards: firebase.firestore.FieldValue.arrayUnion({ text: cardText, used: false })
         });
@@ -79,6 +80,7 @@ async function addCard() {
         console.error('Add card error:', error);
     }
 }
+
 
 // Display cards with delete option
 async function displayCards() {
