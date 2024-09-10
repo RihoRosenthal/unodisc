@@ -67,7 +67,6 @@ function displayWelcomeMessage() {
 
 // Add card function
 async function addCard() {
-    console.log("Add Card button clicked"); // Debugging
     const cardText = document.getElementById('newCardText').value;
     if (!cardText) return;
 
@@ -87,7 +86,6 @@ async function addCard() {
 
 // Display cards with delete option
 async function displayCards() {
-    console.log("Display Cards function called"); // Debugging
     const cardList = document.getElementById('cardList');
     const username = localStorage.getItem('currentUser');
     if (!username) {
@@ -120,7 +118,6 @@ async function displayCards() {
 
 // Delete card function
 async function deleteCard(index) {
-    console.log(`Delete Card function called for index: ${index}`); // Debugging
     const username = localStorage.getItem('currentUser');
     const userRef = db.collection('users').doc(username);
     const userDoc = await userRef.get();
@@ -134,7 +131,6 @@ async function deleteCard(index) {
 
 // Start game function
 async function startGame() {
-    console.log("Start Game button clicked"); // Debugging
     const username = localStorage.getItem('currentUser');
     if (!username) {
         alert('You must be logged in to start the game.');
@@ -160,7 +156,6 @@ async function startGame() {
 
 // Display game cards function
 async function displayGameCards() {
-    console.log("Display Game Cards function called"); // Debugging
     const gameId = localStorage.getItem('currentGame');
     if (!gameId) {
         window.location.href = 'index.html';
@@ -185,8 +180,6 @@ async function displayGameCards() {
 
 // Ensure the document is fully loaded before attaching event listeners
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM fully loaded and parsed"); // Debugging
-
     // Attach event listeners for forms and buttons
     const loginForm = document.getElementById('loginForm');
     if (loginForm) loginForm.addEventListener('submit', (e) => { e.preventDefault(); login(); });
