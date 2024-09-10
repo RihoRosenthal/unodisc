@@ -1,12 +1,32 @@
+// Navigate to the add cards screen
+function goToAddCards() {
+    window.location.href = 'add-cards.html'; // Redirect to add cards page
+}
+
+// Navigate to the game screen
+function goToGame() {
+    const userCards = JSON.parse(localStorage.getItem('cards')) || [];
+    if (userCards.length < 14) {
+        alert('You need at least 14 cards to start the game.');
+        return;
+    }
+    window.location.href = 'game.html'; // Redirect to game page
+}
+
+// End game function
+function endGame() {
+    localStorage.removeItem('selectedCards');
+    window.location.href = 'main.html'; // Redirect to main page
+}
+
 // Add card function
 function addCard() {
-    const cardText = document.getElementById('newCardText').value.trim();
+    const cardText = document.getElementById('newCardText').value.trim(); // Trim whitespace
     if (!cardText) return;
 
     let cards = JSON.parse(localStorage.getItem('cards')) || [];
     cards.push({ text: cardText, used: false });
     localStorage.setItem('cards', JSON.stringify(cards));
-
     displayCards();
 }
 
@@ -37,7 +57,7 @@ function displayCards() {
 // Delete card function
 function deleteCard(index) {
     let cards = JSON.parse(localStorage.getItem('cards')) || [];
-    cards.splice(index, 1);
+    cards.splice(index, 1); // Remove card at index
     localStorage.setItem('cards', JSON.stringify(cards));
     displayCards();
 }
@@ -45,6 +65,7 @@ function deleteCard(index) {
 // Start game function
 function startGame() {
     let cards = JSON.parse(localStorage.getItem('cards')) || [];
+
     if (cards.length < 14) {
         alert('You need at least 14 cards to start the game.');
         return;
@@ -62,12 +83,6 @@ function startGame() {
     window.location.href = 'game.html'; // Redirect to game page
 }
 
-// End game function
-function endGame() {
-    localStorage.removeItem('selectedCards');
-    window.location.href = 'index.html'; // Redirect to main menu
-}
-
 // View cards function
 function viewCards() {
     window.location.href = 'add-cards.html'; // Redirect to add cards page
@@ -75,7 +90,7 @@ function viewCards() {
 
 // Event listeners
 document.getElementById('addCardButton')?.addEventListener('click', addCard);
-document.getElementById('goBackButton')?.addEventListener('click', () => window.location.href = 'index.html');
+document.getElementById('goBackButton')?.addEventListener('click', () => window.location.href = 'main.html');
 document.getElementById('startGameButton')?.addEventListener('click', startGame);
 document.getElementById('endGameButton')?.addEventListener('click', endGame);
 document.getElementById('viewCardsButton')?.addEventListener('click', viewCards);
@@ -91,7 +106,7 @@ if (document.getElementById('gameCardsContainer')) {
     const gameCardsContainer = document.getElementById('gameCardsContainer');
     gameCardsContainer.innerHTML = '';
 
-    selectedCards.forEach((card, index) => {
+    selectedCards.forEach((card) => {
         const cardItem = document.createElement('div');
         cardItem.className = 'game-card';
         cardItem.textContent = card.text;
