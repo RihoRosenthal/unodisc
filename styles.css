@@ -28,45 +28,6 @@ body::before {
     z-index: -1;
 }
 
-/* Style for the auth forms (registration and login) */
-.authForm {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 20px;
-}
-
-.authForm input {
-    margin: 5px;
-    padding: 10px;
-    width: 80%;
-    max-width: 300px;
-}
-
-/* Button styles */
-button {
-    padding: 10px 20px;
-    margin: 10px;
-    font-size: 18px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-/* Style for login text */
-.login-text {
-    color: #fff; /* White text color */
-    font-size: 24px;
-    margin-bottom: 20px;
-}
-
-/* Error message styling */
-.error-message {
-    color: #fff; /* White text color */
-    font-size: 16px;
-    margin: 10px 0;
-}
-
 /* Style for card buttons */
 .card-item {
     background-color: #007BFF; /* Default blue color */
