@@ -33,6 +33,7 @@ async function register() {
         message.textContent = 'Registration successful!';
         message.style.color = 'green';
     } catch (error) {
+        console.error('Registration error:', error);
         message.textContent = error.message;
         message.style.color = 'red';
     }
@@ -49,6 +50,7 @@ async function login() {
         localStorage.setItem('currentUser', email);
         window.location.href = 'main.html'; // Redirect to main page
     } catch (error) {
+        console.error('Login error:', error);
         message.textContent = 'Invalid email or password!';
         message.style.color = 'red';
     }
@@ -60,68 +62,81 @@ async function addCard() {
     const cardText = document.getElementById('newCardText').value;
     if (!cardText) return;
 
-    const username = localStorage.getItem('currentUser');
-    if (!username) {
+    const email = localStorage.getItem('currentUser');
+    if (!email) {
         alert('You must be logged in to add cards.');
         return;
     }
 
-    const userRef = db.collection('users').doc(username);
-    await userRef.update({
-        cards: firebase.firestore.FieldValue.arrayUnion({ text: cardText, used: false })
-    });
-
-    displayCards();
+    try {
+        const userRef = db.collection('users').doc(email);
+        await userRef.update({
+            cards: firebase.firestore.FieldValue.arrayUnion({ text: cardText, used: false })
+        });
+        console.log("Card added successfully"); // Debugging
+        displayCards();
+    } catch (error) {
+        console.error('Add card error:', error);
+    }
 }
 
 // Display cards with delete option
 async function displayCards() {
     console.log("Display Cards function called"); // Debugging
     const cardList = document.getElementById('cardList');
-    const username = localStorage.getItem('currentUser');
-    if (!username) {
+    const email = localStorage.getItem('currentUser');
+    if (!email) {
         window.location.href = 'index.html';
         return;
     }
 
-    const userRef = db.collection('users').doc(username);
-    const userDoc = await userRef.get();
-    const userCards = userDoc.data()?.cards || [];
+    try {
+        const userRef = db.collection('users').doc(email);
+        const userDoc = await userRef.get();
+        const userCards = userDoc.data()?.cards || [];
 
-    cardList.innerHTML = '';
-    userCards.forEach((card, index) => {
-        const cardItem = document.createElement('div');
-        cardItem.className = card.used ? 'card-item used' : 'card-item';
-        cardItem.textContent = card.text;
+        cardList.innerHTML = '';
+        userCards.forEach((card, index) => {
+            const cardItem = document.createElement('div');
+            cardItem.className = card.used ? 'card-item used' : 'card-item';
+            cardItem.textContent = card.text;
 
-        // Add delete button
-        const deleteButton = document.createElement('span');
-        deleteButton.textContent = ' X';
-        deleteButton.style.color = 'red';
-        deleteButton.style.cursor = 'pointer';
-        deleteButton.style.marginLeft = '10px';
-        deleteButton.addEventListener('click', () => deleteCard(index));
+            // Add delete button
+            const deleteButton = document.createElement('span');
+            deleteButton.textContent = ' X';
+            deleteButton.style.color = 'red';
+            deleteButton.style.cursor = 'pointer';
+            deleteButton.style.marginLeft = '10px';
+            deleteButton.addEventListener('click', () => deleteCard(index));
 
-        cardItem.appendChild(deleteButton);
-        cardList.appendChild(cardItem);
-    });
+            cardItem.appendChild(deleteButton);
+            cardList.appendChild(cardItem);
+        });
+    } catch (error) {
+        console.error('Display cards error:', error);
+    }
 }
 
 // Delete card function
 async function deleteCard(index) {
-    const username = localStorage.getItem('currentUser');
-    if (!username) {
+    const email = localStorage.getItem('currentUser');
+    if (!email) {
         alert('You must be logged in to delete cards.');
         return;
     }
 
-    const userRef = db.collection('users').doc(username);
-    const userDoc = await userRef.get();
-    const userCards = userDoc.data()?.cards || [];
-    userCards.splice(index, 1); // Remove card at index
+    try {
+        const userRef = db.collection('users').doc(email);
+        const userDoc = await userRef.get();
+        const userCards = userDoc.data()?.cards || [];
+        userCards.splice(index, 1); // Remove card at index
 
-    await userRef.update({ cards: userCards });
-    displayCards();
+        await userRef.update({ cards: userCards });
+        console.log("Card deleted successfully"); // Debugging
+        displayCards();
+    } catch (error) {
+        console.error('Delete card error:', error);
+    }
 }
 
 // Event listeners for login and registration
