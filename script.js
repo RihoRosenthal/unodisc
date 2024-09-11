@@ -1,6 +1,6 @@
 // Navigate to the add cards screen
 function goToAddCards() {
-    window.location.href = 'add-cards.html'; // Redirect to add cards page
+    window.location.href = 'add-cards.html'; // Redirect to add-cards page
 }
 
 // Navigate to the game screen
@@ -28,9 +28,24 @@ function addCard() {
     }
 
     let cards = JSON.parse(localStorage.getItem('cards')) || [];
+
+    // Log current cards for debugging
+    console.log('Current cards:', cards);
+
+    // Check if a card with the same text already exists
+    const cardExists = cards.some(card => card.text === cardText);
+    if (cardExists) {
+        alert('Selline kaart on juba olemas'); // Alert if card text is already in the list
+        return;
+    }
+
+    // Add new card
     cards.push({ text: cardText, used: false });
     localStorage.setItem('cards', JSON.stringify(cards));
     displayCards(); // Refresh the card list
+
+    // Log updated cards for debugging
+    console.log('Updated cards:', cards);
 }
 
 // Display cards with delete option
@@ -87,6 +102,57 @@ function startGame() {
     window.location.href = 'game.html'; // Redirect to game page
 }
 
+// Load selected cards for the game
+function loadGameCards() {
+    const selectedCards = JSON.parse(localStorage.getItem('selectedCards')) || [];
+    const gameCardsContainer = document.getElementById('gameCardsContainer');
+    
+    if (!gameCardsContainer) {
+        console.error('Game cards container not found.');
+        return;
+    }
+
+    gameCardsContainer.innerHTML = '';
+    gameCardsContainer.style.position = 'relative'; // Ensure relative positioning for child elements
+
+    selectedCards.forEach((card, index) => {
+        const cardItem = document.createElement('div');
+        cardItem.className = 'card-item'; // Use 'card-item' for blue cards in game
+
+        cardItem.textContent = card.text;
+
+        // POSITION CARDS RANDOMLY OFF-SCREEN INITIALLY
+        const startX = Math.random() * (window.innerWidth - 300); // Adjust for card width
+        const startY = Math.random() * (window.innerHeight - 150); // Adjust for card height
+        cardItem.style.position = 'absolute';
+        cardItem.style.left = `${startX}px`;
+        cardItem.style.top = `${startY}px`;
+        cardItem.style.opacity = '0';
+        cardItem.style.transition = 'all 1s ease-out';
+
+        // ADD CLICK EVENT TO CONFIRM CARD USAGE
+        cardItem.addEventListener('click', () => {
+            if (!card.used) {
+                confirmCardUsage(cardItem, card, index);
+            }
+        });
+
+        // APPEND THE CARD ITEM TO THE CONTAINER
+        gameCardsContainer.appendChild(cardItem);
+
+        // TRIGGER ANIMATION
+        setTimeout(() => {
+            cardItem.style.left = '0px'; // Ensure cards move to the correct position
+            cardItem.style.top = `${index * 60}px`; // Position each card below the previous one
+            cardItem.style.opacity = '1';
+            cardItem.classList.add('flying'); // Add the 'flying' class to trigger animation
+        }, 100);
+    });
+}
+
+
+
+
 // Confirm card usage
 function confirmCardUsage(cardItem, card, index) {
     const confirmation = confirm("Kas tahad seda kaarti kasutada?");
@@ -107,49 +173,35 @@ function updateCard(index, updatedCard) {
     displayCards(); // Refresh the card list
 }
 
-// Load selected cards for the game
-function loadGameCards() {
-    const selectedCards = JSON.parse(localStorage.getItem('selectedCards')) || [];
-    const gameCardsContainer = document.getElementById('gameCardsContainer');
-    gameCardsContainer.innerHTML = '';
-
-    selectedCards.forEach((card, index) => {
-        const cardItem = document.createElement('div');
-        cardItem.className = 'card-item'; // Use 'card-item' for blue cards in game
-        cardItem.textContent = card.text;
-
-        // Add click event to confirm card usage
-        cardItem.addEventListener('click', () => {
-            if (!card.used) {
-                confirmCardUsage(cardItem, card, index);
-            }
-        });
-
-        gameCardsContainer.appendChild(cardItem);
-    });
-}
-
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('addCardButton')) {
-        document.getElementById('addCardButton').addEventListener('click', addCard);
-    }
-    if (document.getElementById('goBackButton')) {
-        document.getElementById('goBackButton').addEventListener('click', () => window.location.href = 'main.html');
-    }
-    if (document.getElementById('startGameButton')) {
-        document.getElementById('startGameButton').addEventListener('click', startGame);
-    }
-    if (document.getElementById('endGameButton')) {
-        document.getElementById('endGameButton').addEventListener('click', endGame);
+    const addCardButton = document.getElementById('addCardButton');
+    if (addCardButton) {
+        addCardButton.removeEventListener('click', addCard); // Clean up any existing event listeners
+        addCardButton.addEventListener('click', addCard); // Add the click event listener for adding cards
     }
     
+    const goBackButton = document.getElementById('goBackButton');
+    if (goBackButton) {
+        goBackButton.addEventListener('click', () => window.location.href = 'main.html');
+    }
+    
+    const startGameButton = document.getElementById('startGameButton');
+    if (startGameButton) {
+        startGameButton.addEventListener('click', startGame);
+    }
+    
+    const endGameButton = document.getElementById('endGameButton');
+    if (endGameButton) {
+        endGameButton.addEventListener('click', endGame);
+    }
+
     // Load cards on the add cards page
     if (document.getElementById('cardList')) {
         displayCards();
     }
 
-    // Load selected cards for the game
+    // LOAD SELECTED CARDS FOR THE GAME
     if (document.getElementById('gameCardsContainer')) {
         loadGameCards();
     }

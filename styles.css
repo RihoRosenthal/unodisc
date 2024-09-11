@@ -52,17 +52,48 @@ body::before {
     max-width: 300px;
 }
 
-/* Card list with scroll functionality */
+/* Card list with scroll functionality and vertical list layout */
 #cardList {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    width: 150%;
-    max-height: 60vh; /* Set a maximum height for the list */
-    margin-top: 100px; /* Space below the fixed container */
-    overflow-y: auto; /* Enable vertical scrolling */
-    padding-top: 20px; /* Padding for better spacing */
-    z-index: 0; /* Keep below the input container */
+    align-items: center; /* Center cards horizontally */
+    justify-content: center; /* Center cards vertically if needed */
+    width: 80%; /* Adjust width as needed */
+    max-width: 600px; /* Set a maximum width for the list */
+    max-height: calc(100vh - 120px); /* Set a maximum height to fit within the viewport */
+    margin: 20px auto; /* Center horizontally and space from top/bottom */
+    overflow-y: auto; /* Enable vertical scrolling if content overflows */
+    padding: 20px 0; /* Padding for better spacing */
+    position: relative; /* Ensure child elements are positioned relative to this container */
+    text-align: center; /* Center text inside the card list */
+}
+
+/* Adjust game area container */
+#gameArea {
+    position: relative;
+    width: 100%;
+    height: 100vh; /* Use full viewport height */
+    overflow: auto; /* Enable scrolling if content overflows */
+}
+
+/* Adjust game cards container */
+#gameCardsContainer {
+    position: relative;
+    width: 100%;
+    min-height: 100%; /* Ensure it takes up the full height */
+    box-sizing: border-box;
+}
+
+
+/* Style for flying cards */
+.card-item.flying {
+    animation: flyIn 1s ease-out;
+    position: absolute; /* Ensure cards can be positioned absolutely */
+    width: 80%; /* Ensure cards have a consistent width */
+    max-width: 300px; /* Limit the maximum width */
+    top: 50%; /* Center cards vertically within the list */
+    left: 50%; /* Center cards horizontally within the list */
+    transform: translate(-50%, -50%); /* Offset positioning to ensure center alignment */
 }
 
 /* Style for the card items (Add Cards screen) */
@@ -76,9 +107,12 @@ body::before {
     cursor: pointer;
     display: flex;
     align-items: center;
-    width: 80%;
-    max-width: 300px;
-    text-align: center;
+    justify-content: center; /* Center text inside the card */
+    width: 100%; /* Full width of the container */
+    max-width: 300px; /* Limit the maximum width */
+    text-align: center; /* Center text inside the card */
+    box-sizing: border-box; /* Ensure padding and border are included in width */
+    overflow: hidden; /* Hide overflow text */
 }
 
 /* Style for the used card items (Game screen) */
@@ -94,12 +128,27 @@ body::before {
 }
 
 /* Style for the start and end game buttons */
-#startButton, #endGameButton {
+#startButton {
     padding: 10px 20px;
     margin: 10px;
     font-size: 18px;
     width: 90%;
     max-width: 200px;
+}
+
+/* Style for the end game button */
+#endGameButton {
+    padding: 10px 20px;
+    margin: 10px;
+    font-size: 18px;
+    width: 90%;
+    max-width: 200px;
+    background-color: white; /* Set background color to white */
+    color: black; /* Set text color to black for contrast */
+    position: fixed; /* Fixed position for end game button */
+    bottom: 20px; /* Position button at the bottom */
+    left: 50%; /* Center button horizontally */
+    transform: translateX(-50%); /* Center alignment adjustment */
 }
 
 /* Style for card text preview */
@@ -163,5 +212,17 @@ div:not(#gameArea):empty { /* Hide empty divs that are not #gameArea */
 
     #cardsContainer button, #startButton, #endGameButton, .confirmation-dialog button {
         font-size: 14px;
+    }
+}
+
+/* Animation for flying in cards */
+@keyframes flyIn {
+    from {
+        opacity: 0;
+        transform: translate(100vw, 100vh) scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
     }
 }
