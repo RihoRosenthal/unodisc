@@ -8,7 +8,23 @@
 </head>
 <body>
     <div id="gameArea">
-        <div id="gameCardsContainer"></div>
+        <div class="cards-container">
+            <!-- Column for Unplayed Cards -->
+            <div class="unplayed-cards">
+                <h2>Kasutamata kaardid</h2>
+                <div id="unplayedCardsContainer">
+                    <!-- Dynamic content for unplayed cards will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Column for Played Cards -->
+            <div class="played-cards">
+                <h2>Kasutatud kaardid</h2>
+                <div id="playedCardsContainer">
+                    <!-- Dynamic content for played cards will be inserted here -->
+                </div>
+            </div>
+        </div>
         <button id="endGameButton">Lõpeta mäng ja mine tagasi</button>
     </div>
     <script src="script.js" defer></script>

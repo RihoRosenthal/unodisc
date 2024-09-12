@@ -89,6 +89,10 @@ function startGame() {
         return;
     }
 
+    // Reset all cards to unplayed
+    cards = cards.map(card => ({ ...card, used: false }));
+    localStorage.setItem('cards', JSON.stringify(cards)); // Save the updated cards
+
     const selectedCards = [];
     while (selectedCards.length < 14) {
         const randomIndex = Math.floor(Math.random() * cards.length);
@@ -102,56 +106,40 @@ function startGame() {
     window.location.href = 'game.html'; // Redirect to game page
 }
 
+
 // Load selected cards for the game
 function loadGameCards() {
     const selectedCards = JSON.parse(localStorage.getItem('selectedCards')) || [];
-    const gameCardsContainer = document.getElementById('gameCardsContainer');
+    const unplayedCardsContainer = document.getElementById('unplayedCardsContainer');
+    const playedCardsContainer = document.getElementById('playedCardsContainer');
     
-    if (!gameCardsContainer) {
-        console.error('Game cards container not found.');
+    if (!unplayedCardsContainer || !playedCardsContainer) {
+        console.error('Card containers not found.');
         return;
     }
 
-    gameCardsContainer.innerHTML = '';
-    gameCardsContainer.style.position = 'relative'; // Ensure relative positioning for child elements
+    unplayedCardsContainer.innerHTML = '';
+    playedCardsContainer.innerHTML = '';
 
     selectedCards.forEach((card, index) => {
         const cardItem = document.createElement('div');
-        cardItem.className = 'card-item'; // Use 'card-item' for blue cards in game
-
+        cardItem.className = 'card-item'; // Blue for unplayed cards
         cardItem.textContent = card.text;
 
-        // POSITION CARDS RANDOMLY OFF-SCREEN INITIALLY
-        const startX = Math.random() * (window.innerWidth - 300); // Adjust for card width
-        const startY = Math.random() * (window.innerHeight - 150); // Adjust for card height
-        cardItem.style.position = 'absolute';
-        cardItem.style.left = `${startX}px`;
-        cardItem.style.top = `${startY}px`;
-        cardItem.style.opacity = '0';
-        cardItem.style.transition = 'all 1s ease-out';
-
-        // ADD CLICK EVENT TO CONFIRM CARD USAGE
-        cardItem.addEventListener('click', () => {
-            if (!card.used) {
-                confirmCardUsage(cardItem, card, index);
-            }
-        });
-
-        // APPEND THE CARD ITEM TO THE CONTAINER
-        gameCardsContainer.appendChild(cardItem);
-
-        // TRIGGER ANIMATION
-        setTimeout(() => {
-            cardItem.style.left = '0px'; // Ensure cards move to the correct position
-            cardItem.style.top = `${index * 60}px`; // Position each card below the previous one
-            cardItem.style.opacity = '1';
-            cardItem.classList.add('flying'); // Add the 'flying' class to trigger animation
-        }, 100);
+        if (card.used) {
+            cardItem.classList.add('played'); // Greyed out for used cards
+            playedCardsContainer.appendChild(cardItem);
+        } else {
+            // Click event for confirming card usage
+            cardItem.addEventListener('click', () => {
+                if (!card.used) {
+                    confirmCardUsage(cardItem, card, index);
+                }
+            });
+            unplayedCardsContainer.appendChild(cardItem);
+        }
     });
 }
-
-
-
 
 // Confirm card usage
 function confirmCardUsage(cardItem, card, index) {
@@ -160,8 +148,8 @@ function confirmCardUsage(cardItem, card, index) {
         cardItem.classList.add('played'); // Add 'played' class to grey out
         card.used = true;
         updateCard(index, card);
-    } else {
-        deleteCard(index);
+        // Move to played cards container
+        document.getElementById('playedCardsContainer').appendChild(cardItem);
     }
 }
 
@@ -201,8 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
         displayCards();
     }
 
-    // LOAD SELECTED CARDS FOR THE GAME
-    if (document.getElementById('gameCardsContainer')) {
+    // Load selected cards for the game
+    if (document.getElementById('unplayedCardsContainer') || document.getElementById('playedCardsContainer')) {
         loadGameCards();
     }
 });

@@ -28,21 +28,28 @@ body::before {
     z-index: -1;
 }
 
-/* Fixed position for card input container */
+/* Adjust positioning and ensure buttons stay at the bottom */
 #addCardsContainer {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 20px; /* Space from the top */
-    position: fixed; /* Keep the container fixed at the top */
-    top: 20px; /* Distance from the top of the page */
+    margin: 0; /* Remove any margin */
+    position: fixed; /* Keep the container fixed */
+    top: 0; /* Align container to the top */
+    bottom: 0; /* Align container to the bottom */
     width: 100%;
     max-width: 400px; /* Set a maximum width for the container */
     z-index: 1; /* Ensure it stays above other content */
     background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
     padding: 10px;
     border-radius: 8px;
+    box-sizing: border-box; /* Include padding and border in the width/height calculation */
+    overflow-y: auto; /* Enable vertical scrolling if content overflows */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Push content to the bottom */
 }
+
 
 /* Input styling inside the fixed container */
 #addCardsContainer input {
@@ -57,16 +64,19 @@ body::before {
     display: flex;
     flex-direction: column;
     align-items: center; /* Center cards horizontally */
-    justify-content: center; /* Center cards vertically if needed */
     width: 80%; /* Adjust width as needed */
     max-width: 600px; /* Set a maximum width for the list */
-    max-height: calc(100vh - 120px); /* Set a maximum height to fit within the viewport */
-    margin: 20px auto; /* Center horizontally and space from top/bottom */
+    max-height: calc(100vh - 200px); /* Set a maximum height to fit within the viewport, accounting for other elements */
+    margin: 20px auto; /* Center horizontally and add space from top/bottom */
     overflow-y: auto; /* Enable vertical scrolling if content overflows */
-    padding: 20px 0; /* Padding for better spacing */
+    padding: 10px 0; /* Padding for better spacing */
     position: relative; /* Ensure child elements are positioned relative to this container */
     text-align: center; /* Center text inside the card list */
+    border: 1px solid white; /* Optional: Add border for better visibility */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle shadow for better depth */
+    background-color: rgba(0, 0, 0, 0.5); /* Optional: Background color to distinguish it from the rest of the screen */
 }
+
 
 /* Adjust game area container */
 #gameArea {
@@ -82,18 +92,6 @@ body::before {
     width: 100%;
     min-height: 100%; /* Ensure it takes up the full height */
     box-sizing: border-box;
-}
-
-
-/* Style for flying cards */
-.card-item.flying {
-    animation: flyIn 1s ease-out;
-    position: absolute; /* Ensure cards can be positioned absolutely */
-    width: 80%; /* Ensure cards have a consistent width */
-    max-width: 300px; /* Limit the maximum width */
-    top: 50%; /* Center cards vertically within the list */
-    left: 50%; /* Center cards horizontally within the list */
-    transform: translate(-50%, -50%); /* Offset positioning to ensure center alignment */
 }
 
 /* Style for the card items (Add Cards screen) */
@@ -215,14 +213,49 @@ div:not(#gameArea):empty { /* Hide empty divs that are not #gameArea */
     }
 }
 
-/* Animation for flying in cards */
-@keyframes flyIn {
-    from {
-        opacity: 0;
-        transform: translate(100vw, 100vh) scale(0.5);
-    }
-    to {
-        opacity: 1;
-        transform: translate(0, 0) scale(1);
-    }
-}
+.cards-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+  }
+  
+  .unplayed-cards,
+  .played-cards {
+    width: 20%;
+    border: 2px solid white;
+    padding: 10px;
+    margin: 10px 0;
+    text-align: center;
+  }
+  
+  .unplayed-cards h2,
+  .played-cards h2 {
+    color: white;
+    margin-bottom: 10px;
+  }
+  
+  #unplayedCardsContainer,
+  #playedCardsContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .card {
+    background-color: blue;
+    color: white;
+    width: 80%;
+    padding: 10px;
+    margin: 5px 0;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .card.greyed-out {
+    background-color: grey;
+    color: lightgrey;
+    cursor: not-allowed;
+  }
+  
